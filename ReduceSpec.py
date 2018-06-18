@@ -30,6 +30,7 @@ ReduceSpec.py will automatically sort between Blue and Red ZZ Ceti setups, and w
 # ===========================================================================
 
 import numpy as np
+import os
 import ReduceSpec_tools as rt
 import warnings
 
@@ -40,23 +41,23 @@ import warnings
 # All the functions required are called from ReduceSpec_tools.py
 
 
+
 def reduce_now(args):
     nargs = len(args)
-    if (nargs < 5):
-        print "\n====================\n"
-        print "\nNot Enough Inputs." 
-        print "Need at least 4 inputs: listZero, listFlat, listSpec, listFe"
-        print "Optional inputs: overwrite= , low_sig= , high_sig=  "
-        print "Example:"
-        print "\n>>> python imcombine.py listZero listFlat listSpec listFe \n"
-        print "\n====================\n"
+    if (nargs < 4):
+        print("\n====================\n")
+        print("\nNot Enough Inputs." )
+        print("Need at least 4 inputs: listZero, listFlat, listSpec, listFe")
+        print("Optional inputs: overwrite= , low_sig= , high_sig=  ")
+        print("Example:")
+        print("\n>>> python imcombine.py listZero listFlat listSpec listFe \n")
+        print("\n====================\n")
     
     # Unpack list from command line and combe trough them for diffrent observations # 
     scriptname = args[0]
     zero_lists = rt.List_Combe( rt.Read_List( args[1] ) )
     flat_lists = rt.List_Combe( rt.Read_List( args[2] ) )
     spec_lists = rt.List_Combe( rt.Read_List( args[3] ) )
-    fe_lists = rt.List_Combe( rt.Read_List( args[4] ) )
     
     # Select names from the first image of each observation # 
     zero_names= []
@@ -68,12 +69,9 @@ def reduce_now(args):
     spec_names= []
     for spec in spec_lists:
         spec_names.append(spec[0][5:])
-    fe_names = []
-    for lamp in fe_lists:
-        fe_names.append(lamp[0][5:])
     
     # Default values for special commands if none are given these dont change #   
-    overwrite = False # dont give imcombine permision to overwrite files # 
+    overwrite = True # dont give imcombine permision to overwrite files # 
     lo_sig = 10
     hi_sig = 3
     method = 'median' # method used to combine images 
@@ -93,8 +91,7 @@ def reduce_now(args):
     #Set up array to save for diagnostics. This is defined in rt.init()
     rt.init()
 
-    #Check ADC status during observations
-    adc_status = rt.adcstat(spec_lists[0][0])
+
     
     # The rest of the code runs the reduction procces up to apall #  =========
     # Combine Zeros # 
@@ -114,45 +111,18 @@ def reduce_now(args):
     comb_flat= []
     while i < nf:
         comb_flat.append( rt.imcombine(b_flat_lists[i], 'b.'+flat_names[i], 'median', 
-                        lo_sig= 10, hi_sig= 3, overwrite= overwrite) )
+                    lo_sig= 10, hi_sig= 3, overwrite= overwrite) )
         i= i+1
     
-    #Trim flats#
-    tcomb_flat = []
-    i= 0
-    while i < nf:
-        tcomb_flat.append(rt.Trim_Spec(comb_flat[i])) 
-        i= i+1
-              
-    '''
-    # Normalize Flat # 
-    i= 0
-    nb_flat1= []
-    nb_flat= []
-    while i < nf:
-        nb_flat.append( rt.Norm_Flat_Poly(tcomb_flat[i], 4.) ) # (divide by average of counts)
-        #nb_flat.append(rt.Norm_Flat_Boxcar(nb_flat1[0]))
-        i= i+1
-    '''
+    
     # Normalize Flat # 
     i= 0
     nb_flat= []
     while i < nf:
-        if 'blue' in tcomb_flat[i].lower():
-            nb_flat.append(rt.Norm_Flat_Boxcar_Multiples(tcomb_flat[i],adc_stat=adc_status))
-        else:
-            if 'quartz' in tcomb_flat[i].lower():
-                nb_flat.append( rt.Norm_Flat_Poly(tcomb_flat[i],4.) )
-            else:
-                flat_temp = []
-                flat_temp.append( rt.Norm_Flat_Poly(tcomb_flat[i],3.) )
-                nb_flat.append( rt.Norm_Flat_Boxcar(flat_temp[0]))
-        #nb_flat.append( rt.Norm_Flat_Poly(tcomb_flat[i]) ) # (divide by average of counts)
-        #nb_flat.append(rt.Norm_Flat_Boxcar(nb_flat1[i]))
-        #nb_flat.append(rt.Norm_Flat_Boxcar_Multiples(tcomb_flat[i]))
+        nb_flat.append( rt.Norm_Flat_Avg(comb_flat[i])) # (divide by average of counts)
         i= i+1
-
-
+  
+   
     # Bias Subtract Spec # 
     i= 0
     b_spec_list= []
@@ -161,15 +131,27 @@ def reduce_now(args):
         b_spec_list.append( rt.Bias_Subtract(spec_lists[i], comb_zero) )
         i= i+1
     
-    #Trim Spectra#
-    tb_spec_list = []
-    i= 0
-    while i < nsp:
-        for x in range(0,len(b_spec_list[i])):
-            tb_spec_list.append(rt.Trim_Spec(b_spec_list[i][x])) 
-        i= i+1
-                        
+    print('tennisthree')         
+        
+        
     # Flat Field Individual Spectra #
+    i= 0
+    ftb_spec_list = []
+    tb_spec_list = rt.List_Combe(b_spec_list)
+    print(tb_spec_list[i])
+    print(type(tb_spec_list[i]))
+    
+    while i < nsp:
+        print(tb_spec_list[i])
+        print(type(tb_spec_list[i]))
+        print('tennissix')
+        ftb_spec_list.append( rt.Flat_Field(tb_spec_list[i], nb_flat[0]) )
+        print('tennisfour')
+        i = i +1
+  
+    print('tennisfive')
+
+    '''
     blueindex = [i for i, s in enumerate(nb_flat) if 'blue' in s.lower()]
     nbflatblue = nb_flat[blueindex[0]]
     redindex = [i for i, s in enumerate(nb_flat) if 'red' in s.lower()]
@@ -177,17 +159,19 @@ def reduce_now(args):
         nbflatred = nb_flat[redindex[0]]
     i= 0
     ftb_spec_list = []
-    tb_spec_list = rt.List_Combe(tb_spec_list)
+    tb_spec_list = rt.List_Combe(b_spec_list)
     while i < nsp:
         if tb_spec_list[i][0].lower().__contains__('blue') == True:
             ftb_spec_list.append( rt.Flat_Field(tb_spec_list[i], nbflatblue) )
         elif tb_spec_list[i][0].lower().__contains__('red') == True:
             ftb_spec_list.append( rt.Flat_Field(tb_spec_list[i], nbflatred) )
         else: 
-            print ("Problem applying the Flats." )
-            print ("Could not identify blue or red setup.")
+            print("Problem applying the Flats.")
+            print("Could not identify blue or red setup.")
         i= i+1
-
+    '''
+    
+    
     # Save all diagnostic info
     rt.save_diagnostic()
     
@@ -207,38 +191,10 @@ def reduce_now(args):
     cftb_spec_list = rt.List_Combe(cftb_spec)
     cftb_mask_list = rt.List_Combe(cftb_mask)
     
-    # Combine Spectra # 
-    i= 0 
-    comb_fb_spec = []
-    while i < nsp:
-        rt.checkspec(cftb_spec_list[i])
-        comb_fb_spec.append ( rt.imcombine(cftb_spec_list[i], 'cftb.'+spec_names[i], 'average', 
-                                           lo_sig= 10, hi_sig= 3, overwrite= overwrite,mask=cftb_mask_list[i]) )
-        i= i+1
+   
+   
 
-     
-    print "\n====================\n"
-
-    #########################################
-    # Combine Fe lamps # 
-    print "Combining and trimming Fe lamps."
-    nf = len(fe_lists) #number of fe lamps
-    i = 0
-    comb_lamp = []
-    while i < nf:
-        comb_lamp.append( rt.imcombine(fe_lists[i], fe_names[i], 'average', lo_sig= lo_sig, 
-                        hi_sig= hi_sig, overwrite= overwrite) )
-        i = i+1
-
-    # Trim lamps # 
-    i= 0
-    while i < nf:
-        rt.Trim_Spec(comb_lamp[i]); 
-        i= i+1
- 
-    ########################################
-
-    print "Done. Ready for Apeture Extraction.\n"
+    print("Done. Ready for Apeture Extraction.\n")
     
 # ===========================================================================
 # ===========================================================================
@@ -247,5 +203,7 @@ def reduce_now(args):
 #To run from command line
 if __name__ == "__main__":
     from sys import argv
-    args = argv # arguments from comand line #
+    #args = argv # arguments from comand line #
+    args = ['script','listzero','listflat','listphot']
+    os.chdir('C:/Users/rrolvera/Astro Research/data/WD1150-153/photometry')
     reduce_now(args)
