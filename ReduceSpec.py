@@ -130,26 +130,17 @@ def reduce_now(args):
     while i < nsp:
         b_spec_list.append( rt.Bias_Subtract(spec_lists[i], comb_zero) )
         i= i+1
-    
-    print('tennisthree')         
         
         
     # Flat Field Individual Spectra #
     i= 0
     ftb_spec_list = []
-    tb_spec_list = rt.List_Combe(b_spec_list)
-    print(tb_spec_list[i])
-    print(type(tb_spec_list[i]))
+    #tb_spec_list = rt.List_Combe(b_spec_list)
+    tb_spec_list = b_spec_list
     
     while i < nsp:
-        print(tb_spec_list[i])
-        print(type(tb_spec_list[i]))
-        print('tennissix')
         ftb_spec_list.append( rt.Flat_Field(tb_spec_list[i], nb_flat[0]) )
-        print('tennisfour')
         i = i +1
-  
-    print('tennisfive')
 
     '''
     blueindex = [i for i, s in enumerate(nb_flat) if 'blue' in s.lower()]
@@ -205,5 +196,5 @@ if __name__ == "__main__":
     from sys import argv
     #args = argv # arguments from comand line #
     args = ['script','listzero','listflat','listphot']
-    os.chdir('C:/Users/rrolvera/Astro Research/data/WD1150-153/photometry')
+    #os.chdir('C:/Users/rrolvera/Astro Research/data/WD1150-153/photometry')
     reduce_now(args)

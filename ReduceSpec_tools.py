@@ -16,7 +16,7 @@ import astropy.io.fits as fits
 import os
 import datetime
 import matplotlib.pyplot as plt
-#import cosmics #import cosmics
+import cosmics 
 from glob import glob
 from astropy.convolution import convolve, convolve_fft, Box2DKernel
 
@@ -26,13 +26,14 @@ from astropy.convolution import convolve, convolve_fft, Box2DKernel
 
 def init():
     global diagnostic
-    diagnostic = np.zeros([2071,28])
+    diagnostic = np.zeros([2071,8])
 
 def save_diagnostic():
+    #This function save a diagnostic file to be used later to create diagnostic plots
     global now
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")
-    header = 'Reduction done on ' + now + '\n Zeros in a whole column typically mean blue/red setup not included. Will need to strip zeros from end. \n Columns are: 0) average from bias, 1) average from scaled bias, 2) standard deviation of bias \n 3) Blue flat field average, 4) Blue flat field standard deviation, 5) Blue flat field scaled average, 6) Blue flat field scaled standard deviation \n 7) Red flat field average, 8) Red flat field standard deviation, 9) Red flat field scaled average, 10) Red flat field scaled standard deviation \n 11)Blue Pixels for polynomial fit over littrow ghost, 12) Blue values for polynomial fit over littrow ghost, 13)Polynomial fit mask out littrow ghost  \n 14) Cut along row 100 for blue flat, 15) Cut along row 100 for red flat, 16) junk zeros \n 17) Range of pixels used to find the littrow ghost, 18) Range of values used to find the littrow ghost, 19) Range of pixels used to fit the littrow ghost, 20) Gaussian fit to small number of pixels to find the center of the littrow ghost, 21) The upper and lower edges of the masked region saved to the header \n  22) Combined blue flat pixel values, 23) Combined blue flat values, 24) Polynomial fit to combined blue flat \n 25) Combined red flat pixel values, 26) Combined red flat values, 27) Polynomial fit to combined red flat '
-    with open('reduction_' + now + '.txt','a') as handle:
+    header = 'Reduction done on ' + now + ' \n Columns are: 0) average from bias, 1) average from scaled bias, 2) standard deviation of bias \n 3) flat field average, 4) flat field standard deviation, 5) flat field scaled average, 6) flat field scaled standard deviation '
+    with open('reduction_' + now + '.txt','ab') as handle:
         np.savetxt(handle,diagnostic,fmt='%f',header=header)
 
 def gauss(x,p): #single gaussian
@@ -275,9 +276,6 @@ def Mult_Scale (img_block,index):
         if index == 1:
             diagnostic[0:len(Cavg),3] = np.array(Cavg)
             diagnostic[0:len(Cstd),4] = np.array(Cstd)
-        elif index == 2:
-            diagnostic[0:len(Cavg),7] = np.array(Cavg)
-            diagnostic[0:len(Cstd),8] = np.array(Cstd)
     except:
         pass
     return img_block, Sval
@@ -288,6 +286,9 @@ def Mult_Scale (img_block,index):
 # ===========================================================================
 
 def lacosmic(img):
+    #This function runs LA Cosmic on the images
+    #LA Cosmic is explained in PASP 113, 1420 (2001)
+    #This implementation comes, originally, from http://www.astro.yale.edu/dokkum/lacosmic/
     print('')
     print('Finding cosmic rays in ', img)
     datalist = fits.open(img)
@@ -296,7 +297,8 @@ def lacosmic(img):
     array = data2
     header = fits.getheader(img)
     Fix_Header(header) 
-    gain = 1.33 #datalist[0].header['GAIN'] #1.33 from 2017-06-07
+    #gain = 1.33 #datalist[0].header['GAIN'] #1.33 from 2017-06-07
+    gain = datalist[0].header['GAIN']
     rdnoise = datalist[0].header['RDNOISE']
 
     c = cosmics.cosmicsimage(array, gain=gain, readnoise=rdnoise, sigclip = 5.0, sigfrac = 0.5, objlim = 4.0,satlevel=45000.0,verbose=True)
@@ -339,7 +341,8 @@ def Bias_Subtract( img_list, zero_img ):
         hdu.append( ('BIASSUB', zero_img ,'Image Used to Bias Subtract.'),
                    useblanks= True, bottom= True )
         NewHdu = fits.PrimaryHDU(b_img_data, hdu)
-        bias_sub_name= check_file_exist('b.'+img)
+        #bias_sub_name= check_file_exist('b.'+img)
+        bias_sub_name= 'b.'+img
         NewHdu.writeto(bias_sub_name, output_verify='warn', clobber= True)
         bias_sub_list.append( bias_sub_name )
     return bias_sub_list
@@ -352,7 +355,6 @@ def Norm_Flat_Avg( flat ):
     print("\n====================\n")
     print('Normalizing %s By Dividing Each Pixel By Average Value:' % ( flat ))
     # Read Data, take average, and divide # 
-    print(type(flat))
     flat_data = fits.getdata(flat)
     flat_data[ np.isnan(flat_data) ] = 0
     # Calculate Average of the flat excluding bottom row and overscan regions # 
@@ -365,7 +367,8 @@ def Norm_Flat_Avg( flat ):
     hdu.append( ('NORMFLAT', avg_flat,'Average Used to Normalize the Flat.'), 
                useblanks= True, bottom= True )
     NewHdu = fits.PrimaryHDU(data= norm_flat_data, header= hdu)
-    norm_flat_name= check_file_exist('n'+flat)
+    #norm_flat_name= check_file_exist('n'+flat)
+    norm_flat_name= 'n'+flat
     NewHdu.writeto(norm_flat_name, output_verify='warn', clobber= True )
     
     print ('Flat: %s Mean: %.3f StDev: %.3f' % (norm_flat_name, np.mean(norm_flat_data), np.std(norm_flat_data)))
@@ -382,9 +385,7 @@ def Flat_Field( spec_list, flat ):
     print('Flat Fielding Images by Dividing by %s\n' % (flat))
     
     np.seterr(divide= 'warn')
-    print(type(flat))
     flat_data = fits.getdata(flat)
-    print('tennistwo')
     '''
     #If flat is a blue spectrum, find the Littrow ghost and add those pixels to the header
     if 'blue' in flat.lower():
@@ -421,14 +422,8 @@ def Flat_Field( spec_list, flat ):
     
     if isinstance(spec_list,str):
         spec_list = [spec_list] #Ensure that spec_list is actually a list
-    print(spec_list)
-    print(type(spec_list))
-    print('tennisseven')
     for spec in spec_list:
-        print(type(spec))
-        print('tenniseight')
         spec_data = fits.getdata(spec)
-        print('tennisnine')
         f_spec_data = np.divide(spec_data, flat_data)
         f_spec_data[ np.isnan(f_spec_data) ] = 0
         print("f"+"%s Mean: %.3f StDev: %.3f" % (spec, np.mean(f_spec_data), np.std(f_spec_data) ))
@@ -438,7 +433,8 @@ def Flat_Field( spec_list, flat ):
         hdu.append( ('FLATFLD', flat,'Image used to Flat Field.'), 
                useblanks= True, bottom= True )
         NewHdu = fits.PrimaryHDU(data= f_spec_data, header= hdu)
-        new_file_name= check_file_exist('f'+spec)
+        #new_file_name= check_file_exist('f'+spec)
+        new_file_name= 'f'+spec
         NewHdu.writeto(new_file_name, output_verify='warn', clobber= True)
         f_spec_list.append(new_file_name)
     return f_spec_list
@@ -521,7 +517,7 @@ def imcombine(im_list, output_name, method,
         #   axis[0] has length of number of images.
         #   axis[1] is the vertical axis of the chip.
         #   axis[2] is the horizontal axis of the chip.
-        if i == 0:  
+        if i == 0:
             img_data = fits.getdata(im_list[i])
             #n,Ny,Nx = np.shape(img_data)
             Ny = img_data.shape[-2]
@@ -579,12 +575,8 @@ def imcombine(im_list, output_name, method,
             diagnostic[0:len(avgarr),1] = avgarr
             diagnostic[0:len(stdarr),2] = stdarr
         if im_list[0].lower().__contains__("flat"):
-            if im_list[0].lower().__contains__("blue"):
-                diagnostic[0:len(avgarr),5] = avgarr
-                diagnostic[0:len(stdarr),6] = stdarr
-            elif im_list[0].lower().__contains__("red"):
-                diagnostic[0:len(avgarr),9] = avgarr
-                diagnostic[0:len(stdarr),10] = stdarr
+            diagnostic[0:len(avgarr),5] = avgarr
+            diagnostic[0:len(stdarr),6] = stdarr
     except:
         pass
     ## Combine the images acording to input "method" using SigmaClip() above ## 
@@ -641,7 +633,7 @@ def imcombine(im_list, output_name, method,
             print("\nError: Method NOT AVALABLE.") 
             print("Available Methods: ('median', 'average', 'sum')")
             print("Enter Valid Method")
-            method = raw_input('>>>')
+            method = input('>>>')
     
     # Set NAN values to zero 
     comb_img[ np.isnan(comb_img) ] = np.float32(0)
@@ -690,12 +682,12 @@ def imcombine(im_list, output_name, method,
             # loop also checks new names for existance.  
                 print("\nFile name",output_name,)
                 print("already exist do you wish to overwrite?")
-                yes_no = raw_input('yes or no ?>>>')
+                yes_no = input('yes or no ?>>>')
             
                 if yes_no == 'no':
                     # If overwrite no: prompt new name or abort # 
                     print("\nEnter new file name or Ctrl-c to Abort ")
-                    output_name = raw_input('>>>')
+                    output_name = input('>>>')
                     print("\nNew File Name:= ", output_name)
                     break # breaks out of Inner loop only.
                           # Code proceeds to Outer Loop to 
@@ -740,7 +732,8 @@ def imcombine(im_list, output_name, method,
     hdu.header['BITPIX'] = -32
     
     # Write header to new fits file  
-    new_file_name= check_file_exist(output_name)
+    #new_file_name= check_file_exist(output_name)
+    new_file_name= output_name
     hdu.writeto(new_file_name, output_verify='warn', clobber= True)
     
     # write combined data to new fits file  # 
