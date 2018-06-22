@@ -122,7 +122,8 @@ def reduce_now(args):
         nb_flat.append( rt.Norm_Flat_Avg(comb_flat[i])) # (divide by average of counts)
         i= i+1
   
-   
+    
+    print('tennisten')
     # Bias Subtract Spec # 
     i= 0
     b_spec_list= []
@@ -138,6 +139,7 @@ def reduce_now(args):
     i= 0
     ftb_spec_list = []
     tb_spec_list = rt.List_Combe(b_spec_list)
+  
     print(tb_spec_list[i])
     print(type(tb_spec_list[i]))
     
