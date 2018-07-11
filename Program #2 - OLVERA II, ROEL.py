@@ -13,7 +13,14 @@ import matplotlib.pyplot as plt # Imports for the plots
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes # Tool
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset # Tool
 import matplotlib.pyplot 
-
+from photutils import CircularAperture
+from astropy import units as u 
+from astropy.coordinates import SkyCoord
+from photutils import SkyCircularAperture 
+from photutils import aperture_photometry 
+from astropy.stats import SigmaClip
+from photutils import Background2D, MedianBackground
+from photutils import CircularAnnulus
 #photutils.test()
 
 print("Part 1:")
@@ -81,11 +88,6 @@ comp_flux = [] # This initilizes the array, in the future we can input informati
 errors = [] # This initilizes the array, in the future we can input information
 file_amount = [] # This initilizes the array, in the future we can input information
 
-
-
-
-
-
 # Now we can write a "for" loop 
 
 print("Part 2:")
@@ -101,54 +103,111 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     hdu = fits.getheader(words) 
     img_data = fits.getdata(words)
     print(img_data.shape)
-    targetx, targety = centroid_2dg(img_data[0,348-7:348+7,385-7:385+7])
+    targetx, targety = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
     print(targetx, targety)
     fig, ax = plt.subplots(1, 1)
-    ax.imshow(img_data[0,348-7:348+7,385-7:385+7], origin='lower', interpolation='nearest', cmap='viridis') 
+    ax.imshow(img_data[0,y1-7:y1+7,x1-7:x1+7], origin='lower', interpolation='nearest', cmap='viridis') 
     marker = '+'
     ms, mew = 30, 2.
     plt.plot(targetx, targety, color='#17becf', marker=marker, ms=ms, mew=mew)
     plt.show()
-    print(first)
-    #componex, componey = centroid_2dg(img_data[56-7:56+7,171-7:171+7])
-    #comptwox, comptwoy = centroid_2dg(img_data[129-7:129+7,316-7,316+7])
-    #compthreex, compthreey = centroid_2dg(img_data[629-7:629+7,161-7,161+7])
-
-
-
-
-
-
-
-
-
-'''
-x1, y1 = centroid_2dg(test_image)
-x2, y2 = centroid_2dg(test_image)
-x3, y3 = centroid_2dg(test_image)
-x4, y4 = centroid_2dg(test_image)
-fig, ax = plt.subplots('1', '1')
-ax.imshow(test_image, origin='lower', interpolation='nearest', cmap='viridis') 
-marker = '+'
-ms, mew = 30, 2.
-plt.plot(x1, y1, color='How?', marker=marker, ms=ms, mew=mew)
-plt.plot(x2, y2, color='How?', marker=marker, ms=ms, mew=mew)
-plt.plot(x3, y3, color='How?', marker=marker, ms=ms, mew=mew)
-plt.plot(x4, y4, color='How?', marker=marker, ms=ms, mew=mew)
-# Imports at the beginning
-
-
-# "Do photometry (photutils)"
-
-print("Step 3:")
-   '''
-
-
-
-
-
-
-
+    # Creating Apeture Objects
+    print('Creating Aperture Objects:')
+    positions = [(30., 30.), (40., 40.)]
+    apertures = CircularAperture(positions, r=3)
+    positions = SkyCoord(l=[1.2, 2.3] * u.deg, b=[0.1, 0.2] * u.deg, frame='galactic')
+    apertures = SkyCircularAperture(positions, r=4. * u.arcsec)
+    # Performing Aperture Photometry
+    print('Performing Aperture Photometry:')
+    positions = [(30., 30.), (40., 40.)]
+    apertures = CircularAperture(positions, r=3)
+    data = np.ones((100, 100)) 
+    phot_table = aperture_photometry(data, apertures)
+    print(phot_table)
+    # Apeture and Pixel Overlap
+    print('Aperture and Pixel Overlap:')
+    phot_table = aperture_photometry(data, apertures, method='subpixel', subpixels=5)
+    print(phot_table)
+    # Multiple Apertures at Each Position
+    print('Multiple Apertures at Each Position:')
+    radii = [3., 4., 5.]
+    apertures =[CircularAperture(positions, r=r) for r in radii]
+    phot_table = aperture_photometry(data, apertures)
+    print(phot_table)
+    # Before we go on, we have to establish the backgroun
+    sigma_clip = SigmaClip(sigma=3., iters=10)
+    bkg_estimator = MedianBackground()
+    bkg = Background2D(data, (50, 50), filter_size=(3, 3), sigma_clip=sigma_clip, bkg_estimator=bkg_estimator)
+    # Global Background Subtraction
+    print('Global Background Subtraction:')
+    phot_table = aperture_photometry(data, apertures) # Can be ran without "data - bkg, apertures"
+    # Local Background Subtraction
+    print('Local Background Subtraction:')
+    apertures = CircularAperture(positions, r=3)
+    annulus_apertures = CircularAnnulus(positions, r_in=6., r_out=8)
+    # Perform photometry in both apertures
+    print('Perfrom Photometry in Both Apertures:')
+    apers = [apertures, annulus_apertures]
+    phot_table = aperture_photometry(data, apers)
+    print(phot_table)
+    # Calculate the mean local background within the circular annulus aperture
+    print('Calculate the Mean Local Background Within the Circular Annulus Aperture:')
+    bkg_mean = phot_table['aperture_sum_1'] / annulus_apertures.area()
+    bkg_sum = bkg_mean * apertures.area()
+    final_sum = phot_table['aperture_sum_0'] - bkg_sum
+    phot_table['residual_aperture_sum'] = final_sum
+    print(phot_table['residual_aperture_sum'])
+    # Error Estimation
+    print('Error Estimation:')
+    error = 0.1 * data
+    phot_table = aperture_photometry(data, apertures, error=error)
+    print(phot_table)
+    # Pixel Masking
+    print('Pixel Masking:')
+    data = np.ones((5, 5))
+    aperture = CircularAperture((2, 2), 2.)
+    mask = np.zeros_like(data, dtype=bool)
+    data[2, 2] = 100. # Bad pixel
+    mask[2, 2] = True
+    t1 = aperture_photometry(data, aperture, mask=mask)
+    print(t1['aperture_sum'])
+    # Isolate the value 
+    print('Isolated Value:')
+    print(phot_table['aperture_sum'][0])
+    # Now we can add this value to the "target_flux" we initialized earlier
+    target_flux.append(phot_table['aperture_sum'][0])
+    print(target_flux)
+    # Now we have to retrieve the reference time in the headers
+    spec_data = fits.getdata(words)
+    spec_header = fits.getheader(words)
+    raw_time = spec_header['OPENTIME']
+    print(raw_time)
+    diff_times = raw_time.split(":")
+    print(diff_times)
+    ref_time = float(diff_times[0]) * 3600 + float(diff_times[1]) * 60 + float(diff_times[2])
+    print(ref_time)
+    if raw_time:
+        time.append(ref_time)
+    else:
+        time.append(time - ref_time)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 '''
 ===========================Comments=That=Are=Unneeded==========================
@@ -162,5 +221,50 @@ files into the for loop that already prints out the statements of the listphot
 file. The output should look like something I don't know. Dear Dr. Fuchs, if you're
 reading this, just know that I am trying and if you are reading this, it also
 means that pushed this program all by myself :-)
+===============================================================================
+
+==========================Pieces=I=May=Need====================================
+x1, y1 = centroid_2dg(test_image)
+x2, y2 = centroid_2dg(test_image)
+x3, y3 = centroid_2dg(test_image)
+x4, y4 = centroid_2dg(test_image)
+fig, ax = plt.subplots('1', '1')
+ax.imshow(test_image, origin='lower', interpolation='nearest', cmap='viridis') 
+marker = '+'
+ms, mew = 30, 2.
+plt.plot(x1, y1, color='How?', marker=marker, ms=ms, mew=mew)
+plt.plot(x2, y2, color='How?', marker=marker, ms=ms, mew=mew)
+plt.plot(x3, y3, color='How?', marker=marker, ms=ms, mew=mew)
+plt.plot(x4, y4, color='How?', marker=marker, ms=ms, mew=mew)
+
+    #componex, componey = centroid_2dg(img_data[56-7:56+7,171-7:171+7])
+    #comptwox, comptwoy = centroid_2dg(img_data[129-7:129+7,316-7,316+7])
+    #compthreex, compthreey = centroid_2dg(img_data[629-7:629+7,161-7,161+7])
+    
+    norm = ImageNormalize(stretch=SqrtStretch())
+    ny, nx = data.shape
+    y, x = np.mgrid[:ny, :nx]
+    gradient = x * y / 5000.
+    data2 = data + gradient
+    plt.imshow(data2, norm=norm, origin='lower', cmap='Greys_r')
+    
+        # Aperture Photometry Using Sky Coordinates
+    hdu = datasets.load_spitzer_image()
+    catalog = datasets.load_spitzer_catalog()
+    positions = SkyCoord(catalog['l'], catalog['b'], frame='galactic')
+    apetures = SkyCircularAperture(positions, r=4.8 * u.arcsec)
+    phot_table = aperture_photometry(hdu, apertures)
+    factor = (1.2 * u.arcsec) ** 2 / u.pixel
+    fluxes_catalog = catalog['f4_5']
+    converted_aperture_sum = (phot_table['aperture_sum'] * factor).to(u.mJy / u.pixel)
+    print("okay2")
+    print(fluxes_catalog)
+    print(converted_aperture_sum.value)
+    plt.scatter(fluxes_catalog, converted_aperture_sum.value)
+    print("okay1")
+    plt.xlabel('Spitzer catalog PSF-fit fluxes ')
+    plt.ylabel('Aperture photometry fluxes')
+
+
 ===============================================================================
 '''
