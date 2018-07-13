@@ -100,11 +100,11 @@ print("Step 1:")
 
 dummy = dummy_lists # This defines that the word dummy is the dummy_lists
 for words in dummy: # This "for" loop is for the statements in dummy_lists
-    hdu = fits.getheader(words) 
-    img_data = fits.getdata(words)
-    print(img_data.shape)
-    targetx, targety = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
-    print(targetx, targety)
+    hdu = fits.getheader(words) # This gets the words from the header
+    img_data = fits.getdata(words) # This reads it as data
+    print(img_data.shape) # This shows us the the list
+    targetx, targety = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7]) # This is our target coordinates
+    print(targetx, targety) # This prints our target
     fig, ax = plt.subplots(1, 1)
     ax.imshow(img_data[0,y1-7:y1+7,x1-7:x1+7], origin='lower', interpolation='nearest', cmap='viridis') 
     marker = '+'
@@ -112,22 +112,22 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     plt.plot(targetx, targety, color='#17becf', marker=marker, ms=ms, mew=mew)
     plt.show()
     # Creating Apeture Objects
-    print('Creating Aperture Objects:')
+    #print('Creating Aperture Objects:')
     positions = [(30., 30.), (40., 40.)]
     apertures = CircularAperture(positions, r=3)
     positions = SkyCoord(l=[1.2, 2.3] * u.deg, b=[0.1, 0.2] * u.deg, frame='galactic')
     apertures = SkyCircularAperture(positions, r=4. * u.arcsec)
     # Performing Aperture Photometry
-    print('Performing Aperture Photometry:')
+    #print('Performing Aperture Photometry:')
     positions = [(30., 30.), (40., 40.)]
     apertures = CircularAperture(positions, r=3)
     data = np.ones((100, 100)) 
-    phot_table = aperture_photometry(data, apertures)
-    print(phot_table)
+    #phot_table = aperture_photometry(data, apertures)
+    #print(phot_table)
     # Apeture and Pixel Overlap
-    print('Aperture and Pixel Overlap:')
+    #print('Aperture and Pixel Overlap:')
     phot_table = aperture_photometry(data, apertures, method='subpixel', subpixels=5)
-    print(phot_table)
+    #print(phot_table)
     # Multiple Apertures at Each Position
     print('Multiple Apertures at Each Position:')
     radii = [3., 4., 5.]
@@ -138,32 +138,32 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     sigma_clip = SigmaClip(sigma=3., iters=10)
     bkg_estimator = MedianBackground()
     bkg = Background2D(data, (50, 50), filter_size=(3, 3), sigma_clip=sigma_clip, bkg_estimator=bkg_estimator)
-    # Global Background Subtraction
-    print('Global Background Subtraction:')
+    # Global Background Subtractio
+    #print('Global Background Subtraction:')
     phot_table = aperture_photometry(data, apertures) # Can be ran without "data - bkg, apertures"
     # Local Background Subtraction
-    print('Local Background Subtraction:')
+    #print('Local Background Subtraction:')
     apertures = CircularAperture(positions, r=3)
     annulus_apertures = CircularAnnulus(positions, r_in=6., r_out=8)
     # Perform photometry in both apertures
-    print('Perfrom Photometry in Both Apertures:')
+    #print('Perfrom Photometry in Both Apertures:')
     apers = [apertures, annulus_apertures]
     phot_table = aperture_photometry(data, apers)
-    print(phot_table)
+   # print(phot_table)
     # Calculate the mean local background within the circular annulus aperture
-    print('Calculate the Mean Local Background Within the Circular Annulus Aperture:')
+    #print('Calculate the Mean Local Background Within the Circular Annulus Aperture:')
     bkg_mean = phot_table['aperture_sum_1'] / annulus_apertures.area()
     bkg_sum = bkg_mean * apertures.area()
     final_sum = phot_table['aperture_sum_0'] - bkg_sum
     phot_table['residual_aperture_sum'] = final_sum
-    print(phot_table['residual_aperture_sum'])
+    #print(phot_table['residual_aperture_sum'])
     # Error Estimation
-    print('Error Estimation:')
+   # print('Error Estimation:')
     error = 0.1 * data
     phot_table = aperture_photometry(data, apertures, error=error)
-    print(phot_table)
+   # print(phot_table)
     # Pixel Masking
-    print('Pixel Masking:')
+    #print('Pixel Masking:')
     data = np.ones((5, 5))
     aperture = CircularAperture((2, 2), 2.)
     mask = np.zeros_like(data, dtype=bool)
@@ -175,6 +175,7 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     print('Isolated Value:')
     print(phot_table['aperture_sum'][0])
     # Now we can add this value to the "target_flux" we initialized earlier
+    print('Y-Axis Coordinates:')
     target_flux.append(phot_table['aperture_sum'][0])
     print(target_flux)
     # Now we have to retrieve the reference time in the headers
@@ -184,30 +185,45 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     print(raw_time)
     diff_times = raw_time.split(":")
     print(diff_times)
-    ref_time = float(diff_times[0]) * 3600 + float(diff_times[1]) * 60 + float(diff_times[2])
-    print(ref_time)
-    if raw_time:
-        time.append(ref_time)
+    time1 = float(diff_times[0]) * 3600 + float(diff_times[1]) * 60 + float(diff_times[2])
+    print(time1)
+    if words == dummy_lists:
+        ref_time = time1
+        time.append(ref_time - ref_time)
     else:
-        time.append(time - ref_time)
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+        time.append(ref_time - time1)
+print('X-Axis Coordinates:')
+print(time[::-1])    
+
+print('Part Three:')
+
+# Now we can graph the data
+
+print('Light Curve Draft:')
+
+plt.plot([time[::-1]], [target_flux], 'ro')
+plt.title('Light Curve of Target Star')
+plt.ylabel('Luminosity')
+plt.xlabel('Time')
+plt.show()
+
+awesome = 'Good Job Roel'
+for words in awesome:
+    print(words)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 '''
 ===========================Comments=That=Are=Unneeded==========================
