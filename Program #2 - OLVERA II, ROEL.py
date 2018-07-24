@@ -21,7 +21,13 @@ from photutils import aperture_photometry
 from astropy.stats import SigmaClip
 from photutils import Background2D, MedianBackground
 from photutils import CircularAnnulus
-#photutils.test()
+from astropy.stats import mad_std
+from astropy.stats import sigma_clipped_stats
+from astropy.visualization import SqrtStretch
+from astropy.visualization.mpl_normalize import ImageNormalize
+from astropy.stats import biweight_location
+from photutils import make_source_mask
+
 
 print("Part 1:")
 
@@ -103,13 +109,27 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     hdu = fits.getheader(words) # This gets the words from the header
     img_data = fits.getdata(words) # This reads it as data
     print(img_data.shape) # This shows us the the list
-    targetx, targety = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7]) # This is our target coordinates
-    print(targetx, targety) # This prints our target
+    targetx1, targety1 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7]) # This is our target coordinates
+    #targetx2, targety2 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
+    #targetx3, targety3 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
+    #targetx4, targety4 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
+    print(targetx1, targety1)
+    #print(targetx2, targety2)
+    #print(targetx3, targety3)
+   #print(targetx4, targety4)# This prints our target
     fig, ax = plt.subplots(1, 1)
-    ax.imshow(img_data[0,y1-7:y1+7,x1-7:x1+7], origin='lower', interpolation='nearest', cmap='viridis') 
+    ax.imshow(img_data[0,y1-7:y1+7,x1-7:x1+7], origin='lower', interpolation='nearest', cmap='viridis')
+    #ax.imshow(img_data[0,y2-171:y2+171,x2-56:x2+56], origin='lower', interpolation='nearest', cmap='viridis')
+    #ax.imshow(img_data[0,y3-316:y3+316,x3-129:x3+129], origin='lower', interpolation='nearest', cmap='viridis')
+    #ax.imshow(img_data[0,y4-161:y4+161,x4-629:x4+629], origin='lower', interpolation='nearest', cmap='viridis')
     marker = '+'
     ms, mew = 30, 2.
-    plt.plot(targetx, targety, color='#17becf', marker=marker, ms=ms, mew=mew)
+    plt.plot(targetx1, targety1, color='#17becf', marker=marker, ms=ms, mew=mew)
+   # plt.plot(targetx2, targety2, color='r', marker=marker, ms=ms, mew=mew)
+   # plt.plot(targetx3, targety3, color='y', marker=marker, ms=ms, mew=mew)
+   # plt.plot(targetx4, targety4, color='k', marker=marker, ms=ms, mew=mew)
+    #plt.axis([0, 385, 0, 348])
+    #plt.xlim(341, 354)
     plt.show()
     # Creating Apeture Objects
     #print('Creating Aperture Objects:')
@@ -121,7 +141,17 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     #print('Performing Aperture Photometry:')
     positions = [(30., 30.), (40., 40.)]
     apertures = CircularAperture(positions, r=3)
-    data = np.ones((100, 100)) 
+    data = np.ones((100, 100))
+    mean, median, std = sigma_clipped_stats(data, sigma=3.0, iters=5)
+    norm = ImageNormalize(stretch=SqrtStretch())
+    plt.imshow(data, norm=norm, origin='lower', cmap='Greys_r')
+    print(np.median(data))
+    print(biweight_location((data)))
+    print(mad_std)
+    print(mean, median, std)
+    mask = make_source_mask(data, snr=2, npixels=5, dilate_size=11)
+    mean, median, std = sigma_clipped_stats(data, sigma=3.0, mask=mask)
+    print((mean, median, std))
     #phot_table = aperture_photometry(data, apertures)
     #print(phot_table)
     # Apeture and Pixel Overlap
@@ -182,6 +212,7 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     spec_data = fits.getdata(words)
     spec_header = fits.getheader(words)
     raw_time = spec_header['OPENTIME']
+    print("Raw Time")
     print(raw_time)
     diff_times = raw_time.split(":")
     print(diff_times)
@@ -192,12 +223,34 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
         time.append(ref_time - ref_time)
     else:
         time.append(ref_time - time1)
+    gain = spec_header['GAIN']
+    rdnoise = spec_header['RDNOISE']
+    print("Gain:")
+    print(gain)
+    print("RD Noise")
+    print(rdnoise)
+    print("Signal to Noise Ratio:")
+    value_1 = phot_table['aperture_sum'][0] * gain
+    print("Value 1:")
+    print(value_1)
+    print(mean, median, std)
+    #value_2 = 
 print('X-Axis Coordinates:')
 print(time[::-1])    
 
-print('Part Three:')
+print(mad_std(data))
 
-# Now we can graph the data
+
+
+
+
+
+
+
+
+
+
+print('Part Three:')
 
 print('Light Curve Draft:')
 
@@ -206,24 +259,6 @@ plt.title('Light Curve of Target Star')
 plt.ylabel('Luminosity')
 plt.xlabel('Time')
 plt.show()
-
-awesome = 'Good Job Roel'
-for words in awesome:
-    print(words)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 '''
 ===========================Comments=That=Are=Unneeded==========================
