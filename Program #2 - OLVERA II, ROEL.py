@@ -27,6 +27,7 @@ from astropy.visualization import SqrtStretch
 from astropy.visualization.mpl_normalize import ImageNormalize
 from astropy.stats import biweight_location
 from photutils import make_source_mask
+from photutils import MeanBackground
 
 
 print("Part 1:")
@@ -108,29 +109,39 @@ dummy = dummy_lists # This defines that the word dummy is the dummy_lists
 for words in dummy: # This "for" loop is for the statements in dummy_lists
     hdu = fits.getheader(words) # This gets the words from the header
     img_data = fits.getdata(words) # This reads it as data
+    print('Image Dimensions:')
     print(img_data.shape) # This shows us the the list
-    targetx1, targety1 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7]) # This is our target coordinates
-    #targetx2, targety2 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
-    #targetx3, targety3 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
-    #targetx4, targety4 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
-    print(targetx1, targety1)
-    #print(targetx2, targety2)
-    #print(targetx3, targety3)
-   #print(targetx4, targety4)# This prints our target
-    fig, ax = plt.subplots(1, 1)
-    ax.imshow(img_data[0,y1-7:y1+7,x1-7:x1+7], origin='lower', interpolation='nearest', cmap='viridis')
-    #ax.imshow(img_data[0,y2-171:y2+171,x2-56:x2+56], origin='lower', interpolation='nearest', cmap='viridis')
-    #ax.imshow(img_data[0,y3-316:y3+316,x3-129:x3+129], origin='lower', interpolation='nearest', cmap='viridis')
-    #ax.imshow(img_data[0,y4-161:y4+161,x4-629:x4+629], origin='lower', interpolation='nearest', cmap='viridis')
+    print('Diagrams:')
     marker = '+'
     ms, mew = 30, 2.
+    targetx1, targety1 = centroid_2dg(img_data[0,y1-7:y1+7,x1-7:x1+7])
+    print('Centroid Target Star:')
+    fig, ax = plt.subplots(1, 1)
+    ax.imshow(img_data[0,y1-7:y1+7,x1-7:x1+7], origin='lower', interpolation='nearest', cmap='viridis')
     plt.plot(targetx1, targety1, color='#17becf', marker=marker, ms=ms, mew=mew)
-   # plt.plot(targetx2, targety2, color='r', marker=marker, ms=ms, mew=mew)
-   # plt.plot(targetx3, targety3, color='y', marker=marker, ms=ms, mew=mew)
-   # plt.plot(targetx4, targety4, color='k', marker=marker, ms=ms, mew=mew)
-    #plt.axis([0, 385, 0, 348])
-    #plt.xlim(341, 354)
     plt.show()
+    print(targetx1, targety1)
+    targetx2, targety2 = centroid_2dg(img_data[0,y2-7:y2+7,x2-7:x2+7])
+    print('Centroid Comparison Star 1:')
+    fig, ax = plt.subplots(1, 1)
+    ax.imshow(img_data[0,y2-7:y2+7,x2-7:x2+7], origin='lower', interpolation='nearest', cmap='viridis')
+    plt.plot(targetx2, targety2, color='r', marker=marker, ms=ms, mew=mew)
+    plt.show()
+    print(targetx2, targety2)
+    targetx3, targety3 = centroid_2dg(img_data[0,y3-7:y3+7,x3-7:x3+7])
+    print('Centroid Comparison Star 2:')
+    fig, ax = plt.subplots(1, 1)
+    ax.imshow(img_data[0,y3-7:y3+7,x3-7:x3+7], origin='lower', interpolation='nearest', cmap='viridis')
+    plt.plot(targetx3, targety3, color='y', marker=marker, ms=ms, mew=mew)
+    plt.show()
+    print(targetx3, targety3)
+    targetx4, targety4 = centroid_2dg(img_data[0,y4-7:y4+7,x4-7:x4+7])
+    print('Centroid Comparison Star 3:')
+    fig, ax = plt.subplots(1, 1)
+    ax.imshow(img_data[0,y4-7:y4+7,x4-7:x4+7], origin='lower', interpolation='nearest', cmap='viridis')
+    plt.plot(targetx4, targety4, color='k', marker=marker, ms=ms, mew=mew)
+    plt.show()
+    print(targetx4, targety4)
     # Creating Apeture Objects
     #print('Creating Aperture Objects:')
     positions = [(30., 30.), (40., 40.)]
@@ -144,14 +155,20 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     data = np.ones((100, 100))
     mean, median, std = sigma_clipped_stats(data, sigma=3.0, iters=5)
     norm = ImageNormalize(stretch=SqrtStretch())
-    plt.imshow(data, norm=norm, origin='lower', cmap='Greys_r')
-    print(np.median(data))
-    print(biweight_location((data)))
-    print(mad_std)
-    print(mean, median, std)
+    #plt.imshow(data, norm=norm, origin='lower', cmap='Greys_r')
+    #print(np.median(data))
+    #print(biweight_location((data)))
+    #print(mad_std)
+    #print(mean, median, std)
     mask = make_source_mask(data, snr=2, npixels=5, dilate_size=11)
     mean, median, std = sigma_clipped_stats(data, sigma=3.0, mask=mask)
-    print((mean, median, std))
+    print(mean, median, std)
+    ny, nx = data.shape
+    y, x = np.mgrid[:ny, :nx]
+    gradient = x * y / 5000.
+    data2 = data + gradient
+    #plt.imshow(data2, norm=norm, origin='lower', cmap='Greys_r')
+    #sigma_clip = 
     #phot_table = aperture_photometry(data, apertures)
     #print(phot_table)
     # Apeture and Pixel Overlap
@@ -165,12 +182,20 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     phot_table = aperture_photometry(data, apertures)
     print(phot_table)
     # Before we go on, we have to establish the backgroun
-    sigma_clip = SigmaClip(sigma=3., iters=10)
-    bkg_estimator = MedianBackground()
-    bkg = Background2D(data, (50, 50), filter_size=(3, 3), sigma_clip=sigma_clip, bkg_estimator=bkg_estimator)
+    sigma_clip = SigmaClip(sigma=3.0, iters=10)
+    bkg_estimator = MedianBackground(sigma_clip)
+    #bkg = Background2D(data, (50, 50), filter_size=(3, 3), sigma_clip=sigma_clip, bkg_estimator=bkg_estimator)
+    bkg = MeanBackground(sigma_clip)
+    bkg_value = bkg(data)
+    #print(bkg_value)
+    #print(bkg)
+    #print(bkg_estimator)
+    #print(data)
+    #print(apertures)
     # Global Background Subtractio
     #print('Global Background Subtraction:')
-    phot_table = aperture_photometry(data, apertures) # Can be ran without "data - bkg, apertures"
+    #phot_table = aperture_photometry(data - bkg, apertures) # Can be ran without "data - bkg, apertures"
+    #print(phot_table)
     # Local Background Subtraction
     #print('Local Background Subtraction:')
     apertures = CircularAperture(positions, r=3)
@@ -206,7 +231,7 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     print(phot_table['aperture_sum'][0])
     # Now we can add this value to the "target_flux" we initialized earlier
     print('Y-Axis Coordinates:')
-    target_flux.append(phot_table['aperture_sum'][0])
+    target_flux.append(phot_table['aperture_sum'][1])
     print(target_flux)
     # Now we have to retrieve the reference time in the headers
     spec_data = fits.getdata(words)
@@ -235,20 +260,11 @@ for words in dummy: # This "for" loop is for the statements in dummy_lists
     print(value_1)
     print(mean, median, std)
     #value_2 = 
+print('Y-Axis Coordinates:')
+target_flux.append(phot_table['aperture_sum'][1])
+print(target_flux)
 print('X-Axis Coordinates:')
 print(time[::-1])    
-
-print(mad_std(data))
-
-
-
-
-
-
-
-
-
-
 
 print('Part Three:')
 
@@ -260,62 +276,7 @@ plt.ylabel('Luminosity')
 plt.xlabel('Time')
 plt.show()
 
-'''
-===========================Comments=That=Are=Unneeded==========================
-I am proud of myself in this moment
-6/22/18
-I take it back, I was proud but now I am ashamed 
-
-Dear Monday Morning Roel, you tried your berry best above this line and really
-milked whatever is below here. Okay, so you need to incorporate the opening fits
-files into the for loop that already prints out the statements of the listphot
-file. The output should look like something I don't know. Dear Dr. Fuchs, if you're
-reading this, just know that I am trying and if you are reading this, it also
-means that pushed this program all by myself :-)
-===============================================================================
-
-==========================Pieces=I=May=Need====================================
-x1, y1 = centroid_2dg(test_image)
-x2, y2 = centroid_2dg(test_image)
-x3, y3 = centroid_2dg(test_image)
-x4, y4 = centroid_2dg(test_image)
-fig, ax = plt.subplots('1', '1')
-ax.imshow(test_image, origin='lower', interpolation='nearest', cmap='viridis') 
-marker = '+'
-ms, mew = 30, 2.
-plt.plot(x1, y1, color='How?', marker=marker, ms=ms, mew=mew)
-plt.plot(x2, y2, color='How?', marker=marker, ms=ms, mew=mew)
-plt.plot(x3, y3, color='How?', marker=marker, ms=ms, mew=mew)
-plt.plot(x4, y4, color='How?', marker=marker, ms=ms, mew=mew)
-
-    #componex, componey = centroid_2dg(img_data[56-7:56+7,171-7:171+7])
-    #comptwox, comptwoy = centroid_2dg(img_data[129-7:129+7,316-7,316+7])
-    #compthreex, compthreey = centroid_2dg(img_data[629-7:629+7,161-7,161+7])
+end = ("Progress")
+for words in end:
+    print(words)
     
-    norm = ImageNormalize(stretch=SqrtStretch())
-    ny, nx = data.shape
-    y, x = np.mgrid[:ny, :nx]
-    gradient = x * y / 5000.
-    data2 = data + gradient
-    plt.imshow(data2, norm=norm, origin='lower', cmap='Greys_r')
-    
-        # Aperture Photometry Using Sky Coordinates
-    hdu = datasets.load_spitzer_image()
-    catalog = datasets.load_spitzer_catalog()
-    positions = SkyCoord(catalog['l'], catalog['b'], frame='galactic')
-    apetures = SkyCircularAperture(positions, r=4.8 * u.arcsec)
-    phot_table = aperture_photometry(hdu, apertures)
-    factor = (1.2 * u.arcsec) ** 2 / u.pixel
-    fluxes_catalog = catalog['f4_5']
-    converted_aperture_sum = (phot_table['aperture_sum'] * factor).to(u.mJy / u.pixel)
-    print("okay2")
-    print(fluxes_catalog)
-    print(converted_aperture_sum.value)
-    plt.scatter(fluxes_catalog, converted_aperture_sum.value)
-    print("okay1")
-    plt.xlabel('Spitzer catalog PSF-fit fluxes ')
-    plt.ylabel('Aperture photometry fluxes')
-
-
-===============================================================================
-'''
