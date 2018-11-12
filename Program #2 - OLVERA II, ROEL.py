@@ -72,10 +72,18 @@ print(comparison_star_three) # This prints our star coordinates
 print("Step 3:")
 
 time = [] # This initilizes the array, in the future we can input information
+
 target_flux = [] # This initilizes the array, in the future we can input information
 c1_flux = []
 c2_flux = []
 c3_flux = []
+
+target_sky = []
+c1_sky = []
+c2_sky = []
+c3_sky = []
+
+actual_target = []
 # Now we can write a "for" loop 
 
 print("Part 2:")
@@ -86,13 +94,17 @@ print("Part 2:")
 
 print("Step 1:")
 pix_dis = 7
+annu_radi_1 = 30
+annu_radi_2 = 35
 images = image_list # This defines that the word dummy is the dummy_lists
 for words in images: # This "for" loop is for the statements in dummy_lists
     hdu = fits.getheader(words) # This gets the words from the header
     img_data = fits.getdata(words) # This reads it as data
+    print('=====================================Newest Update=====================================\n')
     print('Image Dimensions:')
     print(img_data.shape) # This shows us the the list
-    print('Diagrams:')
+#    print('\nDiagrams:\n')
+    print('\n********************Centroiding********************\n')
     marker = '+'
     ms, mew = 30, 2.
     targetx1, targety1 = centroid_2dg(img_data[0,y1-pix_dis:y1+pix_dis,x1-pix_dis:x1+pix_dis])
@@ -103,81 +115,112 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     plt.show()
     print(targetx1, targety1)
     targetx2, targety2 = centroid_2dg(img_data[0,y2-pix_dis:y2+pix_dis,x2-pix_dis:x2+pix_dis])
-    print('Centroid Comparison Star 1:')
+    print('\nCentroid Comparison Star 1:')
     fig, ax = plt.subplots(1, 1)
     ax.imshow(img_data[0,y2-pix_dis:y2+pix_dis,x2-pix_dis:x2+pix_dis], origin='lower', interpolation='nearest', cmap='viridis')
     plt.plot(targetx2, targety2, color='r', marker=marker, ms=ms, mew=mew)
     plt.show()
     print(targetx2, targety2)
     targetx3, targety3 = centroid_2dg(img_data[0,y3-pix_dis:y3+pix_dis,x3-pix_dis:x3+pix_dis])
-    print('Centroid Comparison Star 2:')
+    print('\nCentroid Comparison Star 2:')
     fig, ax = plt.subplots(1, 1)
     ax.imshow(img_data[0,y3-pix_dis:y3+pix_dis,x3-pix_dis:x3+pix_dis], origin='lower', interpolation='nearest', cmap='viridis')
     plt.plot(targetx3, targety3, color='y', marker=marker, ms=ms, mew=mew)
     plt.show()
     print(targetx3, targety3)
     targetx4, targety4 = centroid_2dg(img_data[0,y4-pix_dis:y4+pix_dis,x4-pix_dis:x4+pix_dis])
-    print('Centroid Comparison Star 3:')
+    print('\nCentroid Comparison Star 3:')
     fig, ax = plt.subplots(1, 1)
     ax.imshow(img_data[0,y4-pix_dis:y4+pix_dis,x4-pix_dis:x4+pix_dis], origin='lower', interpolation='nearest', cmap='viridis')
     plt.plot(targetx4, targety4, color='k', marker=marker, ms=ms, mew=mew)
     plt.show()
     print(targetx4, targety4)
-    positions = [(x1 + targetx1, y1 + targety1), (x1 + targetx1, y1 + targety1)]
+    positions = [(x1 + targetx1, y1 + targety1)]
     positions_c1 =  [(x2 + targetx2, y2 + targety2)]
     positions_c2 = [(x3 + targetx3, y3 + targety3)]
     positions_c3 = [(x4 + targetx4, y4 + targety4)]
     # Multiple Apertures at Each Position
-    print('Multiple Apertures at Each Position:')
+    print('\n**************************Photometry********************************')
+    print('\nPhotometry of Target Star:\n')
+#    print('Multiple Apertures at Each Position:')
     radii = [3., 4., 5.]
     apertures =[CircularAperture(positions, r=r) for r in radii]
     phot_table = aperture_photometry(img_data[0,:,:], apertures)
-    print(phot_table)
-    print('Circular Annulus:')
-    annulus = [CircularAnnulus(positions, 8, 11)]
-    annu_table = aperture_photometry(img_data[0,:,:], annulus)
-    print(annu_table)
-    print('Isolated Value:')
-    print(phot_table['aperture_sum_1'][0])
-    # Now we can add this value to the "target_flux" we initialized earlier
-    print('Y-Axis Coordinates:')
     target_flux.append(phot_table['aperture_sum_1'][0])
-    print(target_flux)
+    annulus = [CircularAnnulus(positions, annu_radi_1, annu_radi_2)]
+    annu_table = aperture_photometry(img_data[0,:,:], annulus)
+    target_sky.append(annu_table['aperture_sum'][0])
+    print('Circular Aperture:\n', phot_table)
+    print('Circular Annulus:\n', annu_table)
+    counts_per_pix = float(annu_table['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    print('\nCounts Per Pixel of Taget Star:', counts_per_pix)
+    sky_counts = counts_per_pix * (math.pi * (float(radii[0]) ** 2))
+    print('\nSky Counts for Target Star:', sky_counts)
+    actual_target.append(target_flux[-1] - sky_counts)
+    print('\nActual Target:', actual_target[-1])
+#    print('Isolated Value:')
+#    print(phot_table['aperture_sum_1'][0])
+    # Now we can add this value to the "target_flux" we initialized earlier
+#    print('Y-Axis Coordinates:')
+#    target_flux.append(phot_table['aperture_sum_1'][0])
+#    print(target_flux)
     #Do photometry of comparison stars
-    print('Photometry of Comparison Star 1: ')
+    print('\nPhotometry of Comparison Star 1:\n')
     apertures_c1 =[CircularAperture(positions_c1, r=r) for r in radii]
     phot_table_c1 = aperture_photometry(img_data[0,:,:], apertures_c1)
     c1_flux.append(phot_table_c1['aperture_sum_1'][0])
-    annulus_c1 =[CircularAnnulus(positions_c1, 8, 11)]
-    annu_table_c1 = aperture_photometry(img_data[0,:,:], annulus)
-    print('Circular Aperture: ', phot_table_c1)
+    annulus_c1 =[CircularAnnulus(positions_c1, annu_radi_1, annu_radi_2)]
+    annu_table_c1 = aperture_photometry(img_data[0,:,:], annulus_c1)
+    c1_sky.append(annu_table_c1['aperture_sum'][0])
+    print('Circular Aperture:\n', phot_table_c1)
     print('Cirular Annulus:\n', annu_table_c1)
+    counts_per_pix_1 = float(annu_table_c1['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    print('\nCounts Per Pixel of Comparison Star 1:', counts_per_pix_1)
+    sky_counts_1 = counts_per_pix_1 * (math.pi * (float(radii[0]) ** 2))
+    print('\nSky Counts of Comparison Star 1:', sky_counts_1)
+    actual_target.append(c1_flux[-1] - sky_counts_1)
+    print('\nActual Target of Cmparison Star 1:', actual_target[-1])
     
-    print('Photometry of Comparison Star 2: ')
+    print('\nPhotometry of Comparison Star 2:\n')
     apertures_c2 =[CircularAperture(positions_c2, r=r) for r in radii]
     phot_table_c2 = aperture_photometry(img_data[0,:,:], apertures_c2)
     c2_flux.append(phot_table_c2['aperture_sum_1'][0])
-    annulus_c2 =[CircularAnnulus(positions_c2, 8, 11)]
-    annu_table_c2 = aperture_photometry(img_data[0,:,:], annulus)
-    print('Circular Aperture: ', phot_table_c2)
+    annulus_c2 =[CircularAnnulus(positions_c2, annu_radi_1, annu_radi_2)]
+    annu_table_c2 = aperture_photometry(img_data[0,:,:], annulus_c2)
+    c2_sky.append(annu_table_c2['aperture_sum'][0])
+    print('Circular Aperture:\n', phot_table_c2)
     print('Circular Annulus:\n', annu_table_c2)
+    counts_per_pix_2 = float(annu_table_c2['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    print('\nCounts Per Pixel of Comparison Star 2:', counts_per_pix_2)
+    sky_counts_2 = counts_per_pix_2 * (math.pi * (float(radii[0]) ** 2))
+    print('\nSky Counts of Comparison Star 2:', sky_counts_2)
+    actual_target.append(c2_flux[-1] - sky_counts_2)
+    print('\nActual Target of Cmparison Star 2:', actual_target[-1])
     
-    print('Photometry of Comparison Star 3 :')
+    print('\nPhotometry of Comparison Star 3:\n')
     apertures_c3 =[CircularAperture(positions_c3, r=r) for r in radii]
     phot_table_c3 = aperture_photometry(img_data[0,:,:], apertures_c3)
     c3_flux.append(phot_table_c3['aperture_sum_1'][0])
-    annulus_c3 = [CircularAnnulus(positions_c3, 8, 11)]
-    annu_table_c3 = aperture_photometry(img_data[0,:,:], annulus)
-    print('Circular Aperture: ', phot_table_c3)
-    print('Circular Annulus: ', annu_table_c3)
+    annulus_c3 = [CircularAnnulus(positions_c3, annu_radi_1, annu_radi_2)]
+    annu_table_c3 = aperture_photometry(img_data[0,:,:], annulus_c3)
+    c3_sky.append(annu_table_c3['aperture_sum'][0])
+    print('Circular Aperture:\n', phot_table_c3)
+    print('Circular Annulus:\n', annu_table_c3)
+    counts_per_pix_3 = float(annu_table_c3['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    print('\nCounts Per Pixel of Comparison Star 3:', counts_per_pix_3)
+    sky_counts_3 = counts_per_pix_3 * (math.pi * (float(radii[0]) ** 2))
+    print('\nSky Counts of Comparison Star 3:', sky_counts_3)
+    actual_target.append(c3_flux[-1] - sky_counts_3)
+    print('\nActual Target of Cmparison Star 3:', actual_target[-1])
     
     # Now we have to retrieve the reference time in the headers
+    print('\n*************************Time Data********************************')
     recorded_time = hdu['OPENTIME']
-    print("Recorded Time",recorded_time)
+    print("\nRecorded Time:",recorded_time)
     seperated_times = recorded_time.split(":")
-    print(seperated_times)
+    print('\nTimes sperated:', seperated_times)
     time_in_seconds = float(seperated_times[0]) * 3600 + float(seperated_times[1]) * 60 + float(seperated_times[2])
-    print('Time in seconds:',time_in_seconds)
+    print('\nTime in seconds:',time_in_seconds)
     if words == image_list[0]:
         ref_time = time_in_seconds
         time.append(ref_time - ref_time)
@@ -186,26 +229,33 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     else:
         time.append(time_in_seconds - ref_time)    
     
-    print("Signal to Noise Ratio:")
-    value1 = phot_table['aperture_sum_1'][0] * gain
-    value2 = phot_table['aperture_sum_1'][0] + (rdnoise ** 2) #what is aperture sky counts?
-    value3 = value2 * (math.pi * (radii[0] ** 2))
-    value4 = value1 + value3
-    value5 = value4 ** (.5)
-    sn_ratio = value1 / value5
-    print('Value 1:',value1)
-    print('Value 2:',value2)
-    print('value 3:',value3)
-    print('Value 4:',value4)
-    print('Value 5:',value5)
-    print('Ratio:',sn_ratio)
-    print(target_flux)
-    print('X-Axis Coordinates:')
-    print(time[::-1])    
+#    print("Signal to Noise Ratio:")
+#    value1 = phot_table['aperture_sum_1'][0] * gain
+#    value2 = phot_table['aperture_sum_1'][0] + (rdnoise ** 2) #what is aperture sky counts?
+#    value3 = value2 * (math.pi * (radii[0] ** 2))
+#    value4 = value1 + value3
+#    value5 = value4 ** (.5)
+#    sn_ratio = value1 / value5
+#    print('Value 1:',value1)
+#    print('Value 2:',value2)
+#    print('value 3:',value3)
+#    print('Value 4:',value4)
+#    print('Value 5:',value5)
+#    print('Target Sky:\n', target_sky)
+#    print('Comparison Sky 1:\n', c1_sky)
+#    print('Comparison Sky 2:\n', c2_sky)
+#    print('Comparison Sky 3:\n', c3_sky)
+#    print('Signal to Noise Ratio Value:',sn_ratio)
+#    print(target_flux)
+    print('\n*******************************Coordinate Data******************************')
+    print('\nX-Axis Coordinates:\n')
+    print(time[::-1])
+    print('\nY-Axis Coordinates:\n')
+     
 
-print('Part Three:')
+#print('\nPart Three:')
 
-print('Light Curve Draft:')
+print('\n**********************************Light Curve Draft*******************************')
 
 
 average_comparison = (np.asarray(c1_flux)+np.asarray(c2_flux)+np.asarray(c3_flux))/3.
