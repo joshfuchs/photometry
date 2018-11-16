@@ -84,6 +84,16 @@ c2_sky = []
 c3_sky = []
 
 actual_target = []
+actual_c1 = []
+actual_c2 = []
+actual_c3 = []
+
+sky_counts_target_lst = []
+sky_counts_c1_lst = []
+sky_counts_c2_lst = []
+sky_counts_c3_lst= []
+
+
 # Now we can write a "for" loop 
 
 print("Part 2:")
@@ -107,6 +117,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     print('\n********************Centroiding********************\n')
     marker = '+'
     ms, mew = 30, 2.
+    
     targetx1, targety1 = centroid_2dg(img_data[0,y1-pix_dis:y1+pix_dis,x1-pix_dis:x1+pix_dis])
     print('Centroid Target Star:')
     fig, ax = plt.subplots(1, 1)
@@ -114,6 +125,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     plt.plot(targetx1, targety1, color='#17becf', marker=marker, ms=ms, mew=mew)
     plt.show()
     print(targetx1, targety1)
+    
     targetx2, targety2 = centroid_2dg(img_data[0,y2-pix_dis:y2+pix_dis,x2-pix_dis:x2+pix_dis])
     print('\nCentroid Comparison Star 1:')
     fig, ax = plt.subplots(1, 1)
@@ -121,6 +133,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     plt.plot(targetx2, targety2, color='r', marker=marker, ms=ms, mew=mew)
     plt.show()
     print(targetx2, targety2)
+    
     targetx3, targety3 = centroid_2dg(img_data[0,y3-pix_dis:y3+pix_dis,x3-pix_dis:x3+pix_dis])
     print('\nCentroid Comparison Star 2:')
     fig, ax = plt.subplots(1, 1)
@@ -128,6 +141,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     plt.plot(targetx3, targety3, color='y', marker=marker, ms=ms, mew=mew)
     plt.show()
     print(targetx3, targety3)
+    
     targetx4, targety4 = centroid_2dg(img_data[0,y4-pix_dis:y4+pix_dis,x4-pix_dis:x4+pix_dis])
     print('\nCentroid Comparison Star 3:')
     fig, ax = plt.subplots(1, 1)
@@ -135,6 +149,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     plt.plot(targetx4, targety4, color='k', marker=marker, ms=ms, mew=mew)
     plt.show()
     print(targetx4, targety4)
+    
     positions = [(x1 + targetx1, y1 + targety1)]
     positions_c1 =  [(x2 + targetx2, y2 + targety2)]
     positions_c2 = [(x3 + targetx3, y3 + targety3)]
@@ -155,6 +170,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     counts_per_pix = float(annu_table['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Taget Star:', counts_per_pix)
     sky_counts = counts_per_pix * (math.pi * (float(radii[0]) ** 2))
+    sky_counts_target_lst.append(sky_counts)
     print('\nSky Counts for Target Star:', sky_counts)
     actual_target.append(target_flux[-1] - sky_counts)
     print('\nActual Target:', actual_target[-1])
@@ -177,9 +193,10 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     counts_per_pix_1 = float(annu_table_c1['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Comparison Star 1:', counts_per_pix_1)
     sky_counts_1 = counts_per_pix_1 * (math.pi * (float(radii[0]) ** 2))
+    sky_counts_c1_lst.append(sky_counts_1)
     print('\nSky Counts of Comparison Star 1:', sky_counts_1)
-    actual_target.append(c1_flux[-1] - sky_counts_1)
-    print('\nActual Target of Cmparison Star 1:', actual_target[-1])
+    actual_c1.append(c1_flux[-1] - sky_counts_1)
+    print('\nActual Target of Cmparison Star 1:', actual_c1[-1])
     
     print('\nPhotometry of Comparison Star 2:\n')
     apertures_c2 =[CircularAperture(positions_c2, r=r) for r in radii]
@@ -193,9 +210,10 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     counts_per_pix_2 = float(annu_table_c2['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Comparison Star 2:', counts_per_pix_2)
     sky_counts_2 = counts_per_pix_2 * (math.pi * (float(radii[0]) ** 2))
+    sky_counts_c2_lst.append(sky_counts_2)
     print('\nSky Counts of Comparison Star 2:', sky_counts_2)
-    actual_target.append(c2_flux[-1] - sky_counts_2)
-    print('\nActual Target of Cmparison Star 2:', actual_target[-1])
+    actual_c2.append(c2_flux[-1] - sky_counts_2)
+    print('\nActual Target of Cmparison Star 2:', actual_c2[-1])
     
     print('\nPhotometry of Comparison Star 3:\n')
     apertures_c3 =[CircularAperture(positions_c3, r=r) for r in radii]
@@ -209,9 +227,10 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     counts_per_pix_3 = float(annu_table_c3['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Comparison Star 3:', counts_per_pix_3)
     sky_counts_3 = counts_per_pix_3 * (math.pi * (float(radii[0]) ** 2))
+    sky_counts_c3_lst.append(sky_counts_3)
     print('\nSky Counts of Comparison Star 3:', sky_counts_3)
-    actual_target.append(c3_flux[-1] - sky_counts_3)
-    print('\nActual Target of Cmparison Star 3:', actual_target[-1])
+    actual_c3.append(c3_flux[-1] - sky_counts_3)
+    print('\nActual Target of Cmparison Star 3:', actual_c3[-1])
     
     # Now we have to retrieve the reference time in the headers
     print('\n*************************Time Data********************************')
@@ -229,28 +248,72 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     else:
         time.append(time_in_seconds - ref_time)    
     
-#    print("Signal to Noise Ratio:")
-#    value1 = phot_table['aperture_sum_1'][0] * gain
-#    value2 = phot_table['aperture_sum_1'][0] + (rdnoise ** 2) #what is aperture sky counts?
-#    value3 = value2 * (math.pi * (radii[0] ** 2))
-#    value4 = value1 + value3
-#    value5 = value4 ** (.5)
-#    sn_ratio = value1 / value5
-#    print('Value 1:',value1)
-#    print('Value 2:',value2)
-#    print('value 3:',value3)
-#    print('Value 4:',value4)
-#    print('Value 5:',value5)
+    print("\nSignal to Noise Ratios\n:")
+    print('Target Star:')
+    target_v1 = phot_table['aperture_sum_1'][0] * gain
+    target_v2 = sky_counts + (rdnoise ** 2) #what is aperture sky counts?
+    target_v3 = target_v2 * (math.pi * (radii[0] ** 2))
+    target_v4 = target_v1 + target_v3
+    target_v5 = target_v4 ** (.5)
+    target_sn_ratio = target_v1 / target_v5
+    print('Value 1:', target_v1)
+    print('Value 2:', target_v2)
+    print('value 3:', target_v3)
+    print('Value 4:', target_v4)
+    print('Value 5:', target_v5)
 #    print('Target Sky:\n', target_sky)
 #    print('Comparison Sky 1:\n', c1_sky)
 #    print('Comparison Sky 2:\n', c2_sky)
 #    print('Comparison Sky 3:\n', c3_sky)
-#    print('Signal to Noise Ratio Value:',sn_ratio)
+    print('Signal to Noise Ratio Value of Target Star:', target_sn_ratio)
+    
+    print('\nComparison Star 1:')
+    c1_v1 = phot_table_c1['aperture_sum_1'][0] * gain
+    c1_v2 = sky_counts_1 + (rdnoise ** 2)
+    c1_v3 = c1_v2 * (math.pi * (radii[0] ** 2))
+    c1_v4 = c1_v1 + c1_v3
+    c1_v5 = c1_v4 ** (.5)
+    c1_sn_ratio = c1_v1 / c1_v5
+    print('Value 1:', c1_v1)
+    print('Value 2:', c1_v2)
+    print('value 3:', c1_v3)
+    print('Value 4:', c1_v4)
+    print('Value 5:', c1_v5)
+    print('Signal to Noise Ratio Value of Comparison Star 1:', c1_sn_ratio)
+    
+    print('\nComparison Star 2:')
+    c2_v1 = phot_table_c2['aperture_sum_1'][0] * gain
+    c2_v2 = sky_counts_2 + (rdnoise ** 2)
+    c2_v3 = c2_v2 * (math.pi * (radii[0] ** 2))
+    c2_v4 = c2_v1 + c2_v3
+    c2_v5 = c2_v4 ** (.5)
+    c2_sn_ratio = c2_v1 / c2_v5
+    print('Value 1:', c2_v1)
+    print('Value 2:', c2_v2)
+    print('value 3:', c2_v3)
+    print('Value 4:', c2_v4)
+    print('Value 5:', c2_v5)
+    print('Signal to Noise Ratio Value of Comparison Star 1:', c2_sn_ratio)
+    
+    print('\nComparison Star 3:')
+    c3_v1 = phot_table_c1['aperture_sum_1'][0] * gain
+    c3_v2 = sky_counts_3 + (rdnoise ** 2)
+    c3_v3 = c3_v2 * (math.pi * (radii[0] ** 2))
+    c3_v4 = c3_v1 + c3_v3
+    c3_v5 = c3_v4 ** (.5)
+    c3_sn_ratio = c3_v1 / c3_v5
+    print('Value 1:', c3_v1)
+    print('Value 2:', c3_v2)
+    print('value 3:', c3_v3)
+    print('Value 4:', c3_v4)
+    print('Value 5:', c3_v5)
+    print('Signal to Noise Ratio Value of Comparison Star 1:', c3_sn_ratio)
+    
 #    print(target_flux)
     print('\n*******************************Coordinate Data******************************')
     print('\nX-Axis Coordinates:\n')
     print(time[::-1])
-    print('\nY-Axis Coordinates:\n')
+#    print('\nY-Axis Coordinates:\n')
      
 
 #print('\nPart Three:')
