@@ -39,9 +39,12 @@ print(image_list) # This reads out our list
 
 print("Step 2:")
 
+
+
 target_star = [] # This lets us set a name to a set of coordinates
-x1 = 385 # This is the x coordinate of the star 
-y1 = 348 # This is the y coordinate of the star
+#x1 = 385 # This is the x coordinate of the star 
+#y1 = 348 # This is the y coordinate of the star
+x1, y1 = np.genfromtxt('coordinates.txt', dtype=int, comments='#', unpack=True)
 target_star.append((x1, y1)) # This adds our coordinate/star to our program
 print("Target Star Coordinates:") # This is the title of information
 print(target_star) # This prints our star coordinates
@@ -248,7 +251,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     else:
         time.append(time_in_seconds - ref_time)    
     
-    print("\nSignal to Noise Ratios\n:")
+    print("\nSignal to Noise Ratios:\n")
     print('Target Star:')
     target_v1 = phot_table['aperture_sum_1'][0] * gain
     target_v2 = sky_counts + (rdnoise ** 2) #what is aperture sky counts?
