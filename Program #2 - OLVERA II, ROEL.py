@@ -39,33 +39,24 @@ print(image_list) # This reads out our list
 
 print("Step 2:")
 
-
-
+COORDINATES = 'coordinates.txt'
+x1, y1, x2, y2, x3, y3, x4, y4 = np.genfromtxt(COORDINATES, dtype=int, comments='#', unpack=True)
 target_star = [] # This lets us set a name to a set of coordinates
-#x1 = 385 # This is the x coordinate of the star 
-#y1 = 348 # This is the y coordinate of the star
-x1, y1 = np.genfromtxt('coordinates.txt', dtype=int, comments='#', unpack=True)
 target_star.append((x1, y1)) # This adds our coordinate/star to our program
 print("Target Star Coordinates:") # This is the title of information
 print(target_star) # This prints our star coordinates
 
 comparison_star_one = [] # This lets us set a name to a set of coordinates
-x2 = 56 # This is the x coordinate of the star 
-y2 = 171 # This is the y coordinate of the star
 comparison_star_one.append((x2, y2)) # This adds our coordinate/star to our program
 print("Comparison Star One Coordinates:") # This is the title of information
 print(comparison_star_one) # This prints our star coordinates
         
 comparison_star_two = [] # This lets us set a name to a set of coordinates
-x3 = 129 # This is the x coordinate of the star 
-y3 = 316 # This is the y coordinate of the star
 comparison_star_two.append((x3, y3)) # This adds our coordinate/star to our program
 print("Comparison Star Two Coordinates:") # This is the title of information
 print(comparison_star_two) # This prints our star coordinates
 
 comparison_star_three = [] # This lets us set a name to a set of coordinates
-x4 = 629 # This is the x coordinate of the star 
-y4 = 161 # This is the y coordinate of the star
 comparison_star_three.append((x4, y4)) # This adds our coordinate/star to our program
 print("Comparison Star Three Coordinates:") # This is the title of information
 print(comparison_star_three) # This prints our star coordinates        
@@ -116,7 +107,6 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     print('=====================================Newest Update=====================================\n')
     print('Image Dimensions:')
     print(img_data.shape) # This shows us the the list
-#    print('\nDiagrams:\n')
     print('\n********************Centroiding********************\n')
     marker = '+'
     ms, mew = 30, 2.
@@ -157,10 +147,9 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     positions_c1 =  [(x2 + targetx2, y2 + targety2)]
     positions_c2 = [(x3 + targetx3, y3 + targety3)]
     positions_c3 = [(x4 + targetx4, y4 + targety4)]
-    # Multiple Apertures at Each Position
+    
     print('\n**************************Photometry********************************')
     print('\nPhotometry of Target Star:\n')
-#    print('Multiple Apertures at Each Position:')
     radii = [3., 4., 5.]
     apertures =[CircularAperture(positions, r=r) for r in radii]
     phot_table = aperture_photometry(img_data[0,:,:], apertures)
@@ -177,13 +166,7 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     print('\nSky Counts for Target Star:', sky_counts)
     actual_target.append(target_flux[-1] - sky_counts)
     print('\nActual Target:', actual_target[-1])
-#    print('Isolated Value:')
-#    print(phot_table['aperture_sum_1'][0])
-    # Now we can add this value to the "target_flux" we initialized earlier
-#    print('Y-Axis Coordinates:')
-#    target_flux.append(phot_table['aperture_sum_1'][0])
-#    print(target_flux)
-    #Do photometry of comparison stars
+
     print('\nPhotometry of Comparison Star 1:\n')
     apertures_c1 =[CircularAperture(positions_c1, r=r) for r in radii]
     phot_table_c1 = aperture_photometry(img_data[0,:,:], apertures_c1)
@@ -264,10 +247,6 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     print('value 3:', target_v3)
     print('Value 4:', target_v4)
     print('Value 5:', target_v5)
-#    print('Target Sky:\n', target_sky)
-#    print('Comparison Sky 1:\n', c1_sky)
-#    print('Comparison Sky 2:\n', c2_sky)
-#    print('Comparison Sky 3:\n', c3_sky)
     print('Signal to Noise Ratio Value of Target Star:', target_sn_ratio)
     
     print('\nComparison Star 1:')
@@ -312,14 +291,9 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     print('Value 5:', c3_v5)
     print('Signal to Noise Ratio Value of Comparison Star 1:', c3_sn_ratio)
     
-#    print(target_flux)
     print('\n*******************************Coordinate Data******************************')
     print('\nX-Axis Coordinates:\n')
     print(time[::-1])
-#    print('\nY-Axis Coordinates:\n')
-     
-
-#print('\nPart Three:')
 
 print('\n**********************************Light Curve Draft*******************************')
 
