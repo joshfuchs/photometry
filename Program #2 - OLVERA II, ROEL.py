@@ -313,6 +313,14 @@ normalized_aperture = (target_flux/average_comparison) / np.median((target_flux/
 ####print(c1_flux)
 ####print(normalized_aperture)
 ####print(time)
+
+a = np.array([time[::-1]])
+b = np.array([normalized_aperture])
+x = a[0,:]
+y = b[0,:]
+z = np.polyfit(x, y, 1)
+p = np.poly1d(z)
+plt.plot(time[::-1], p(time[::-1]), '-')
 plt.plot([time[::-1]], [normalized_aperture], 'ro')
 plt.title('Light Curve of WD 1150-153',fontsize=16)
 plt.ylabel('Fractional Intensity', fontsize=16)
@@ -321,3 +329,15 @@ plt.tick_params(labelsize=16)
 #plt.savefig('WD1150-153_lightcurve.png',bbox_inches='tight',dpi=400)
 
 plt.show()
+
+line_division = ([normalized_aperture] / p(time[::-1]))
+print(line_division)
+line_division.shape
+print(normalized_aperture[:5])
+print(time[::-1][:5])
+print(line_division[:5])
+plt.plot([time[::-1]], [line_division])
+plt.title('Trendline Graph', fontsize=16)
+plt.ylabel("I'm not sure yet", fontsize=16)
+plt.xlabel('Maybe this is the time?', fontsize=16)
+plt.show() 
