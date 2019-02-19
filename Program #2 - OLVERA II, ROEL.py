@@ -305,7 +305,7 @@ average_comparison = (np.asarray(c1_flux)+np.asarray(c2_flux)+np.asarray(c3_flux
 #normalized_aperture = (target_flux/average_comparison) / np.median(average_comparison) - 1
 normalized_aperture = target_flux/average_comparison
 
-polyfit_dap1=np.polyfit(time[::-1], normalized_aperture, yfit=normalized_aperture)
+
 
 #Remove polynomial
 ####poly = np.polyfit(time,normalized_aperture,2)
@@ -332,7 +332,7 @@ plt.tick_params(labelsize=16)
 
 plt.show()
 
-line_division = ([normalized_aperture] / p(time[::-1]))
+line_division = ([normalized_aperture] / p(time[::-1])) - 1
 print('Shape\n', line_division.shape)
 print('Shape of P Time', p(time[::-1]).shape)
 print('Shpae of Time', time[::-1])
