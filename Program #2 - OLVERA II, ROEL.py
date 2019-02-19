@@ -303,7 +303,9 @@ average_comparison = (np.asarray(c1_flux)+np.asarray(c2_flux)+np.asarray(c3_flux
 #print(average_comparison)
 #print(np.median(average_comparison))
 #normalized_aperture = (target_flux/average_comparison) / np.median(average_comparison) - 1
-normalized_aperture = (target_flux/average_comparison) / np.median((target_flux/average_comparison)) - 1
+normalized_aperture = target_flux/average_comparison
+
+polyfit_dap1=np.polyfit(time[::-1], normalized_aperture, yfit=normalized_aperture)
 
 #Remove polynomial
 ####poly = np.polyfit(time,normalized_aperture,2)
