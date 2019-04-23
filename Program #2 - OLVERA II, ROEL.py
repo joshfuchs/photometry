@@ -12,6 +12,8 @@ from photutils import centroid_2dg, CircularAperture, CircularAnnulus # for the 
 import matplotlib.pyplot as plt 
 from photutils import aperture_photometry
 import math 
+from astropy.stats import LombScargle
+
 
 print("Part 1:")
 
@@ -29,7 +31,7 @@ def Read_List( lst ):
     im_list = im_list.split() # This makes the file into a list of some sort
     return im_list # This produces the list we just found 
 
-os.chdir('C:/Users/rrolvera/Astro Research/data/WD1150-153/photometry') # Changes our directory to where our "listphot" is located
+os.chdir('/home/stdres1/AstroResearch/WD1150-153/photometry') # Changes our directory to where our "listphot" is located
 images = 'listphot' # A name is given to the file we are using/want 
 image_list = Read_List(images) # Read_List command reads dummy and is called dummy_lists as a whole
 print(image_list) # This reads out our list
@@ -156,10 +158,11 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     target_flux.append(phot_table['aperture_sum_1'][0])
     annulus = [CircularAnnulus(positions, annu_radi_1, annu_radi_2)]
     annu_table = aperture_photometry(img_data[0,:,:], annulus)
-    target_sky.append(annu_table['aperture_sum'][0])
+    print(annu_table) #we don't need this 
+    target_sky.append(annu_table['aperture_sum_0'][0])
     print('Circular Aperture:\n', phot_table)
     print('Circular Annulus:\n', annu_table)
-    counts_per_pix = float(annu_table['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    counts_per_pix = float(annu_table['aperture_sum_0'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Taget Star:', counts_per_pix)
     sky_counts = counts_per_pix * (math.pi * (float(radii[0]) ** 2))
     sky_counts_target_lst.append(sky_counts)
@@ -173,10 +176,10 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     c1_flux.append(phot_table_c1['aperture_sum_1'][0])
     annulus_c1 =[CircularAnnulus(positions_c1, annu_radi_1, annu_radi_2)]
     annu_table_c1 = aperture_photometry(img_data[0,:,:], annulus_c1)
-    c1_sky.append(annu_table_c1['aperture_sum'][0])
+    c1_sky.append(annu_table_c1['aperture_sum_0'][0])
     print('Circular Aperture:\n', phot_table_c1)
     print('Cirular Annulus:\n', annu_table_c1)
-    counts_per_pix_1 = float(annu_table_c1['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    counts_per_pix_1 = float(annu_table_c1['aperture_sum_0'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Comparison Star 1:', counts_per_pix_1)
     sky_counts_1 = counts_per_pix_1 * (math.pi * (float(radii[0]) ** 2))
     sky_counts_c1_lst.append(sky_counts_1)
@@ -190,10 +193,10 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     c2_flux.append(phot_table_c2['aperture_sum_1'][0])
     annulus_c2 =[CircularAnnulus(positions_c2, annu_radi_1, annu_radi_2)]
     annu_table_c2 = aperture_photometry(img_data[0,:,:], annulus_c2)
-    c2_sky.append(annu_table_c2['aperture_sum'][0])
+    c2_sky.append(annu_table_c2['aperture_sum_0'][0])
     print('Circular Aperture:\n', phot_table_c2)
     print('Circular Annulus:\n', annu_table_c2)
-    counts_per_pix_2 = float(annu_table_c2['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    counts_per_pix_2 = float(annu_table_c2['aperture_sum_0'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Comparison Star 2:', counts_per_pix_2)
     sky_counts_2 = counts_per_pix_2 * (math.pi * (float(radii[0]) ** 2))
     sky_counts_c2_lst.append(sky_counts_2)
@@ -207,10 +210,10 @@ for words in images: # This "for" loop is for the statements in dummy_lists
     c3_flux.append(phot_table_c3['aperture_sum_1'][0])
     annulus_c3 = [CircularAnnulus(positions_c3, annu_radi_1, annu_radi_2)]
     annu_table_c3 = aperture_photometry(img_data[0,:,:], annulus_c3)
-    c3_sky.append(annu_table_c3['aperture_sum'][0])
+    c3_sky.append(annu_table_c3['aperture_sum_0'][0])
     print('Circular Aperture:\n', phot_table_c3)
     print('Circular Annulus:\n', annu_table_c3)
-    counts_per_pix_3 = float(annu_table_c3['aperture_sum'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
+    counts_per_pix_3 = float(annu_table_c3['aperture_sum_0'][0]) / (math.pi * (float(annu_radi_2 ** 2) - float(annu_radi_1 ** 2)))
     print('\nCounts Per Pixel of Comparison Star 3:', counts_per_pix_3)
     sky_counts_3 = counts_per_pix_3 * (math.pi * (float(radii[0]) ** 2))
     sky_counts_c3_lst.append(sky_counts_3)
@@ -338,7 +341,16 @@ print('Shape of P Time', p(time[::-1]).shape)
 print('Shpae of Time', time[::-1])
 print(line_division)
 plt.plot([time[::-1]], line_division, 'bs')
-plt.title('Trendline Graph\n', fontsize=16)
-plt.ylabel("I'm not sure yet (Probably the Line Division)", fontsize=16)
-plt.xlabel("Maybe this is the time? It's time. For sure.", fontsize=16)
+plt.title('Graph of Trendline from Light Curve WD 1150-153\n', fontsize=16)
+plt.ylabel("Fractional Instensity of Line Division", fontsize=16)
+plt.xlabel("Time (Seconds)", fontsize=16)
 plt.show() 
+
+frequency, power = LombScargle(time[::-1], normalized_aperture).autopower()
+print(frequency)
+print(power)
+plt.plot(frequency, power)
+plt.ylim(0, 0.05)
+plt.xlabel('Frequency', fontsize=16)
+plt.ylabel('Power', fontsize=16)
+plt.title('Lomb Scargle Chart', fontsize=16)
