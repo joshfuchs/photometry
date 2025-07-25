@@ -1,0 +1,20 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: photometry
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Josh
+    family-names: Fuchs
+    affiliation: University of North Carolina
+  - given-names: Roel
+    family-names: Olvera
+    affiliation: Texas Lutheran University
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.16422331
+license: MIT
